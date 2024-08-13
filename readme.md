@@ -1,4 +1,4 @@
-# CipherBlock Serializer
+# CipherBlock Serializer (In development)
 
 ## Overview
 The CipherBlock Serializer is a Go library designed to serialize and deserialize cryptographic cipher blocks (`cipher.Block`) into byte slices (`[]byte`). This functionality is particularly useful for embedding cryptographic cipher configurations directly into code, facilitating secure, hardcoded cryptographic setups.
