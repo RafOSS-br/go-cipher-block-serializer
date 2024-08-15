@@ -4,6 +4,7 @@ import (
 	"crypto/cipher"
 	"encoding/json"
 	"errors"
+	"io"
 	"reflect"
 	"unsafe"
 )
@@ -14,9 +15,9 @@ type Block struct {
 }
 
 // FromJson creates a Block from a JSON string.
-func NewBlockFromJson(jsonStr string) (Block, error) {
+func NewBlockFromJson(buffer []byte) (Block, error) {
 	var b Block
-	err := json.Unmarshal([]byte(jsonStr), &b)
+	err := json.Unmarshal(buffer, &b)
 	if err != nil {
 		return Block{}, err
 	}
@@ -24,12 +25,13 @@ func NewBlockFromJson(jsonStr string) (Block, error) {
 }
 
 // Json returns the JSON representation of a Block.
-func (b Block) Json() (string, error) {
+func (b Block) Json(f io.Writer) error {
 	bytes, err := json.Marshal(b)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return string(bytes), nil
+	f.Write(bytes)
+	return nil
 }
 
 // Serialize serializes a cipher.Block to a byte slice.
@@ -77,7 +79,6 @@ func Deserialize(block Block, cipherType reflect.Type) (cipher.Block, error) {
 
 	// Create a new instance of the cipher.Block using the provided type
 	newBlockPtr := reflect.NewAt(cipherType, unsafe.Pointer(&block))
-
 
 	// Convert the newBlockPtr to a cipher.Block interface
 	cipherBlock, ok := newBlockPtr.Interface().(cipher.Block)
