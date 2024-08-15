@@ -28,23 +28,35 @@ var commonKey256 = []byte{
 }
 
 func testCipher(t *testing.T, key []byte) {
-	c, err := aes.NewCipher(key)
+	cipher, err := aes.NewCipher(key)
 	if err != nil {
 		t.Fatalf("Failed to create cipher with %d-bit key: %s", len(key)*8, err)
 	}
 
 	encryptedText := make([]byte, aes.BlockSize)
-	c.Encrypt(encryptedText, commonInput[:aes.BlockSize])
+	cipher.Encrypt(encryptedText, commonInput[:aes.BlockSize])
 
-	b := Serialize(c)
-	reC := Deserialize(b, reflect.TypeOf(c))
-
-	if !reflect.DeepEqual(c, reC) {
+	serializedBlock, err := Serialize(cipher)
+	if err != nil {
+		t.Fatalf("Failed to serialize cipher with %d-bit key: %s", len(key)*8, err)
+	}
+	json, err := serializedBlock.Json()
+	if err != nil {
+		t.Fatalf("Failed to serialize cipher with %d-bit key: %s", len(key)*8, err)
+	}
+	recreatedBlock, err := NewBlockFromJson(json)
+	if err != nil {
+		t.Fatalf("Failed to deserialize cipher with %d-bit key: %s", len(key)*8, err)
+	}
+	recoveredCipher, err := Deserialize(recreatedBlock, reflect.TypeOf(cipher))
+	if err != nil {
+		t.Fatalf("Failed to deserialize cipher with %d-bit key: %s", len(key)*8, err)
+	}
+	if !reflect.DeepEqual(cipher, recoveredCipher) {
 		t.Fatalf("Original and reconstructed cipher are not equal with %d-bit key", len(key)*8)
 	}
-
 	encryptedText2 := make([]byte, aes.BlockSize)
-	reC.Encrypt(encryptedText2, commonInput[:aes.BlockSize])
+	recoveredCipher.Encrypt(encryptedText2, commonInput[:aes.BlockSize])
 	if !reflect.DeepEqual(encryptedText, encryptedText2) {
 		t.Fatalf("Encrypted text is not equal after reconstruction with %d-bit key", len(key)*8)
 	}
