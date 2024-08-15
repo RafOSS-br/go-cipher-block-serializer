@@ -14,9 +14,20 @@ type Block struct {
 	Dec []uint32
 }
 
-// FromJson creates a Block from a JSON string.
-func NewBlockFromJson(buffer []byte) (Block, error) {
+// FromJSON reads a JSON and returns a Block.
+func NewBlockFromJson(reader io.ByteReader) (Block, error) {
 	var b Block
+	var buffer []byte
+	for {
+		b, err := reader.ReadByte()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return Block{}, err
+		}
+		buffer = append(buffer, b)
+	}
 	err := json.Unmarshal(buffer, &b)
 	if err != nil {
 		return Block{}, err
@@ -24,7 +35,7 @@ func NewBlockFromJson(buffer []byte) (Block, error) {
 	return b, nil
 }
 
-// Json returns the JSON representation of a Block.
+// Json writes the JSON representation of a Block.
 func (b Block) Json(f io.Writer) error {
 	bytes, err := json.Marshal(b)
 	if err != nil {

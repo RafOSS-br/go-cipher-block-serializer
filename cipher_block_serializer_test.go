@@ -3,7 +3,6 @@ package goCipherBlockSerializer
 import (
 	"bytes"
 	"crypto/aes"
-	"io"
 	"reflect"
 	"testing"
 )
@@ -48,11 +47,7 @@ func testCipher(t *testing.T, key []byte) {
 	if err != nil {
 		t.Fatalf("Failed to serialize cipher with %d-bit key: %s", len(key)*8, err)
 	}
-	bytes, err := buffer.ReadBytes(0)
-	if err != nil && err != io.EOF {
-		t.Fatalf("Failed to serialize cipher with %d-bit key: %s", len(key)*8, err)
-	}
-	recreatedBlock, err := NewBlockFromJson(bytes)
+	recreatedBlock, err := NewBlockFromJson(buffer)
 	if err != nil {
 		t.Fatalf("Failed to deserialize cipher with %d-bit key: %s", len(key)*8, err)
 	}
